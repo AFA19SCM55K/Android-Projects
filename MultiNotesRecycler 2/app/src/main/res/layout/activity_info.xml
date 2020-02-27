@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    tools:context=".Info">
+
+    <TextView
+        android:id="@+id/multinotes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="180dp"
+        android:text="MultiNotes"
+        android:textColor="#D500F9"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/cc"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_marginTop="50dp"
+        android:text="2020 by AKSHAY KULKARNI"
+        android:textColor="#D500F9"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="@+id/multinotes"
+        app:layout_constraintStart_toStartOf="@+id/multinotes"
+        app:layout_constraintTop_toBottomOf="@+id/multinotes" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginTop="380dp"
+        android:text="version a1.0"
+        android:textColor="#D500F9"
+        app:layout_constraintEnd_toEndOf="@+id/cc"
+        app:layout_constraintStart_toStartOf="@+id/cc"
+        app:layout_constraintTop_toBottomOf="@+id/cc" />
+</androidx.constraintlayout.widget.ConstraintLayout>
