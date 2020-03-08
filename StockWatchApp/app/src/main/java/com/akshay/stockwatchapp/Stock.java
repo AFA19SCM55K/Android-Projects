@@ -21,9 +21,10 @@ public class Stock {
         this.changePercentage = changePercentage;
     }
 
-    public Stock(String name, String symbol) {
+    public Stock(String symbol, String name) {
         this.name= name;
         this.symbol = symbol;
+//      ADD defaults value here
     }
 
     public String getSymbol() {

@@ -8,9 +8,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.LoginFilter;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -21,6 +27,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
@@ -34,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     StockAdapter stockAdapter;
     SwipeRefreshLayout swipeRefreshLayout;
     String searchName = "";
+    private DatabaseHandler databaseHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +59,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 doRefresh();
             }
         });
-       new NameLoader(this).execute();
+       if(checkNetwork()){
+           Log.i("NetworkInfo: bp:","Network is connected");
+           new NameLoader(this).execute();
+       }
+       else
+       {
+           errorDialog();
+           Log.i("NetoworkInfo: bp:","Network is not connected");
+       }
+        databaseHandler = new DatabaseHandler(this);
+
+
+    }
+
+    private void errorDialog() {
+        // Simple dialog - no buttons.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setIcon(R.drawable.ic_error_outline_black_24dp);
+
+        builder.setMessage("Check your internet connection");
+        builder.setTitle("Netowork Error");
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+    @Override
+    protected void onResume() {
+        databaseHandler.dumpDbToLog();
+        ArrayList<Stock> list = databaseHandler.loadCountries();
+        stockArrayList.clear();
+//        stockArrayList.addAll(sortList(list));
+        Log.d(TAG, "onResume: dp"+sortList(list));
+        Log.d(TAG, "onResume: dp:"+stockArrayList);
+        Log.d(TAG, "onResume: " + list);
+        for (int i = 0; i < list.size(); i++) {
+            String symbol = list.get(i).getSymbol();
+            new StockLoader(MainActivity.this).execute(symbol);
+        }
+//        stockAdapter.notifyDataSetChanged();
+        super.onResume();
+    }
+    ArrayList<Stock> sortList(ArrayList<Stock> temp){
+        Collections.sort(stockArrayList, new Comparator<Stock>() {
+            @Override
+            public int compare(Stock o1, Stock o2) {
+                return o1.getSymbol().compareTo(o2.getSymbol());
+            }
+        });
+        return temp;
     }
 
     @Override
@@ -59,6 +118,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.d(TAG, "onCreateOptionsMenu: ");
         getMenuInflater().inflate(R.menu.opt_add,menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onDestroy() {
+        databaseHandler.shutDown();
+        super.onDestroy();
     }
 
     @Override
@@ -95,7 +160,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                databaseHandler.deleteStock(stockArrayList.get(position));
+                databaseHandler.dumpDbToLog();
                 stockArrayList.remove(position);
+                stockArrayList = sortList(stockArrayList);
                 stockAdapter.notifyDataSetChanged();
                 Toast.makeText(getApplicationContext(), ""+stockArrayList.size(), Toast.LENGTH_SHORT).show();
                 position = -1;
@@ -113,7 +181,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
     public void updateData(HashMap<String,String> cList) {
-        stockHashMap.putAll(cList);
+        if(cList!=null) {
+            stockHashMap.putAll(cList);
+        }
+        else {
+            checkNetwork();
+            Toast.makeText(this, "No data", Toast.LENGTH_SHORT).show();
+        }
         for(String key : stockHashMap.keySet()) {
             if(key.startsWith("FB") || stockHashMap.get(key).startsWith("FB")) {
                 //DO SOMETHING HERE
@@ -142,7 +216,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     addStock();
                 }
                 else {
-                    searchStock(searchName);
+                    if(checkNetwork()){
+                        Log.i("NetworkInfo: bp:","Network is connected");
+                        searchStock(searchName);
+                    }
+                    else
+                    {
+                        errorDialog();
+                        Log.i("NetoworkInfo: bp:","Network is not connected");
+                    }
+
                 }
 
                 Log.d(TAG, "onClick: symbol:"+searchName);
@@ -165,24 +248,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     {
     ArrayList<Stock> stocksTempList = new ArrayList<>();
         for(String key : stockHashMap.keySet()) {
-                if (key.startsWith(searchStock)) {
+                if (key.startsWith(searchStock) || stockHashMap.get(key).contains(searchStock)) {
                     Stock temp = new Stock(key, stockHashMap.get(key));
                     stocksTempList.add(temp);
                 }
         }
-        Toast.makeText(getApplicationContext(), "FOUND"+stocksTempList.size(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "FOUND "+stocksTempList.size(), Toast.LENGTH_SHORT).show();
         if(stocksTempList.size()>1)
         {
             selectMultipleStock(stocksTempList);
         }
         else if(stocksTempList.size()==1)
         {
-           //
-        }
-        else
+            if(isDuplicate(stocksTempList.get(0)))
             {
-
+                saveToDB(stocksTempList.get(0));
+                databaseHandler.dumpDbToLog();
+            }
         }
+        else {
+            Toast.makeText(this, "Stock does not exists", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public Boolean isDuplicate(Stock stock){
+        for(Stock s : stockArrayList){
+            if(s.getSymbol().equals(stock.getSymbol())){
+                Log.d(TAG, "saveToDB: bp:"+s.getSymbol());
+                Log.d(TAG, "saveToDB: bp:"+ stock.getSymbol());
+                Toast.makeText(this, "STOCK ALREADY PRESENT", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            //something here
+        }
+        return true;
+    }
+
+    private void saveToDB(Stock stock) {
+            Log.d(TAG, "saveToDB: bp"+stockArrayList);
+            Log.d(TAG, "saveToDB: bp"+stock);
+            databaseHandler.addStocks(stock);
+            new StockLoader(MainActivity.this).execute(stock.getSymbol());
+//            stockArrayList.add(stock);
+//            stockArrayList = sortList(stockArrayList);
+            stockAdapter.notifyDataSetChanged();
     }
 
     public void selectMultipleStock(final ArrayList<Stock> stockArrayList){
@@ -200,6 +309,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setItems(sArray, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 Stock temp = stockArrayList.get(which);
+                if(isDuplicate(temp)){
+                    saveToDB(temp);
+                }
+                else{
+                    Toast.makeText(MainActivity.this, "Stock already exists", Toast.LENGTH_SHORT).show();
+                }
+
                 Toast.makeText(MainActivity.this, "You selected"+temp.getSymbol(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -215,5 +331,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.show();
     }
 
+    private boolean checkNetwork() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager == null) {
+            Toast.makeText(this, "Check your Internet Connection", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
 
-}
+
+    public void setStock(Stock stock) {
+        ArrayList<Stock> temp = new ArrayList<>();
+        temp.addAll(stockArrayList);
+
+            for(Stock s:temp){
+                if(s.getSymbol().equalsIgnoreCase(stock.getSymbol())){
+                    temp.remove(s);
+                }
+            }
+            temp.add(stock);
+            stockArrayList.clear();
+            stockArrayList.addAll(temp);
+            stockArrayList = sortList(stockArrayList);
+            stockAdapter.notifyDataSetChanged();
+        }
+    }
+

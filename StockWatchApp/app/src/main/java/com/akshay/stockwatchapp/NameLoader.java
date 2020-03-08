@@ -57,8 +57,9 @@ public class NameLoader extends AsyncTask<Void, Void, String> {
     protected void onPostExecute(String s) {
         HashMap<String,String> stockHashMap = parseJSON(s);
         Log.d(TAG, "onPostExecute: bp:"+stockHashMap);
-        if (stockHashMap != null)
+        if (stockHashMap != null && stockHashMap.size()>-1)
             Toast.makeText(mainActivity, "Loaded " + stockHashMap.size() + " stocks.", Toast.LENGTH_SHORT).show();
+        else Toast.makeText(mainActivity.getApplicationContext(), "No Stocks", Toast.LENGTH_SHORT).show();
         mainActivity.updateData(stockHashMap);
     }
 
