@@ -3,6 +3,7 @@ package com.akshay.stockwatchapp;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.LongDef;
 
@@ -62,7 +63,13 @@ public class StockLoader extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String s) {
         Log.d(TAG, "onPostExecute: bp:"+s);
         Stock stock = jsonToMap(s);
-        mainActivity.setStock(stock);
+        Log.d(TAG, "onPostExecute: xz:"+(stock==null)+"");
+        if(stock!=null && stock.getSymbol()!=null) {
+            mainActivity.setStock(stock);
+        }
+        else {
+//            Toast.makeText(mainActivity, "Error occurred", Toast.LENGTH_SHORT).show();
+        }
         super.onPostExecute(s);
     }
 
@@ -72,6 +79,7 @@ public class StockLoader extends AsyncTask<String, Void, String> {
             JSONObject jsonObject = new JSONObject(s);
             String symbol = jsonObject.getString("symbol");
             String name = jsonObject.getString("companyName");
+            Log.d(TAG, "jsonToMap: jp:"+name);
             double price = jsonObject.getDouble("latestPrice");
             double priceChange = jsonObject.getDouble("change");
             double changePercentage = jsonObject.getDouble("changePercent");
@@ -82,6 +90,7 @@ public class StockLoader extends AsyncTask<String, Void, String> {
             stock.setChangePercentage(changePercentage);
             return stock;
         } catch (JSONException e) {
+            Toast.makeText(mainActivity, "Error in API for the stock", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
         return null;

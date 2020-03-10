@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,17 +35,19 @@ public class StockAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         Stock stock = stockArrayList.get(position);
-        if(stock.getPriceChange()<0){
-          setRed(holder,stock);
-        }
-        else if(stock.getPriceChange()>0)
-        {
-            setGreen(holder,stock);
-        }
-        else {
+        try {
+            if (stock.getPriceChange() < 0) {
+                setRed(holder, stock);
+            } else if (stock.getPriceChange() > 0) {
+                setGreen(holder, stock);
+            } else {
 
+            }
+            setStock(holder, stock);
+        }catch (Exception e)
+        {
+            Toast.makeText(mainActivity, "Invalid Stock Response : 500", Toast.LENGTH_SHORT).show();
         }
-        setStock(holder, stock);
 
     }
 
