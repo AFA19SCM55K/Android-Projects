@@ -64,11 +64,11 @@ public class StockLoader extends AsyncTask<String, Void, String> {
         Log.d(TAG, "onPostExecute: bp:"+s);
         Stock stock = jsonToMap(s);
         Log.d(TAG, "onPostExecute: xz:"+(stock==null)+"");
-        if(stock!=null && stock.getSymbol()!=null) {
+        if(stock!=null && stock.getSymbol()!=null && stock.getName()!=null) {
             mainActivity.setStock(stock);
         }
         else {
-//            Toast.makeText(mainActivity, "Error occurred", Toast.LENGTH_SHORT).show();
+
         }
         super.onPostExecute(s);
     }

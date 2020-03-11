@@ -41,7 +41,7 @@ public class StockAdapter extends RecyclerView.Adapter<MyViewHolder> {
             } else if (stock.getPriceChange() > 0) {
                 setGreen(holder, stock);
             } else {
-
+//
             }
             setStock(holder, stock);
         }catch (Exception e)

@@ -24,6 +24,9 @@ public class Stock {
     public Stock(String symbol, String name) {
         this.name= name;
         this.symbol = symbol;
+        price = 0;
+        priceChange = 0;
+        changePercentage = 0;
 //      ADD defaults value here
     }
 

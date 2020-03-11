@@ -17,6 +17,9 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            android:scrollbarThumbVertical="@android:color/holo_blue_dark"
+            android:scrollbarSize="5dp"
             android:background="#00050505">
 
         </androidx.recyclerview.widget.RecyclerView>

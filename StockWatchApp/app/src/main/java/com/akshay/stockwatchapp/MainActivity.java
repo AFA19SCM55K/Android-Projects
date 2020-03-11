@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         recyclerView = findViewById(R.id.recyclerView);
+        databaseHandler = new DatabaseHandler(this);
         stockAdapter = new StockAdapter(stockArrayList, this);
         recyclerView.setAdapter(stockAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -65,7 +66,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
-        databaseHandler = new DatabaseHandler(this);
+
+        if (checkNetwork()) {
+            Log.i("NetworkInfo: bp:", "Network is connected");
+            new NameLoader(this).execute();
+        } else {
+            errorNetworkDialog();
+        }
+
+
 
 
     }
@@ -87,25 +96,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onResume() {
-        if (checkNetwork()) {
-            Log.i("NetworkInfo: bp:", "Network is connected");
-            new NameLoader(this).execute();
-        } else {
-            errorNetworkDialog();
-            Log.i("NetoworkInfo: bp:", "Network is not connected");
-        }
-        databaseHandler.dumpDbToLog();
         ArrayList<Stock> list = databaseHandler.loadCountries();
         stockArrayList.clear();
 //        stockArrayList.addAll(sortList(list));
         Log.d(TAG, "onResume: dp" + sortList(list));
         Log.d(TAG, "onResume: dp:" + stockArrayList);
         Log.d(TAG, "onResume: " + list);
-        for (int i = 0; i < list.size(); i++) {
-            String symbol = list.get(i).getSymbol();
-            Log.d(TAG, "onResume: fg:" + symbol);
-            new StockLoader(MainActivity.this).execute(symbol);
+        if(checkNetwork()) {
+            for (int i = 0; i < list.size(); i++) {
+                String symbol = list.get(i).getSymbol();
+                Log.d(TAG, "onResume: fg:" + symbol);
+                new StockLoader(MainActivity.this).execute(symbol);
+            }
         }
+        else {
+            errorNetworkDialog();
+            ArrayList<Stock> list2 = databaseHandler.loadCountries();
+            stockArrayList.clear();
+            for(int i=0;i<list2.size();i++)
+            {
+                Stock s = list2.get(i);
+                stockArrayList.add(new Stock(s.getSymbol(),s.getName()));
+                stockArrayList = sortList(stockArrayList);
+            }
+        }
+        databaseHandler.dumpDbToLog();
 //        stockAdapter.notifyDataSetChanged();
         super.onResume();
     }
@@ -138,7 +153,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (item.getItemId()) {
             case R.id.add_stock:
                 if (checkNetwork()) {
-                    addStock();
+                    if(stockHashMap.isEmpty()) {
+                        new NameLoader(this).execute();
+                        addStock();
+
+                    }
+                    else {
+                        addStock();
+                    }
                 } else {
                     errorNetworkDialog();
                 }
@@ -177,9 +199,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onLongClick(View v) {
-        Toast.makeText(v.getContext(), "Long click detected", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(v.getContext(), "Long click detected", Toast.LENGTH_SHORT).show();
         position = recyclerView.getChildLayoutPosition(v);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.drawable.ic_delete_black_24dp);
         builder.setTitle("Delete Stock");
         builder.setMessage("Do you want to delete \'" + stockArrayList.get(position).getName() + "\' Stock");
         builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
@@ -277,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 stocksTempList.add(temp);
             }
         }
-        Toast.makeText(getApplicationContext(), "FOUND " + stocksTempList.size(), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), "FOUND " + stocksTempList.size(), Toast.LENGTH_SHORT).show();
         if (stocksTempList.size() > 1) {
             selectMultipleStock(stocksTempList);
         } else if (stocksTempList.size() == 1) {
@@ -322,8 +345,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void selectMultipleStock(final ArrayList<Stock> stockArrayList) {
         final CharSequence[] sArray = new CharSequence[stockArrayList.size()];
 
-        for (int i = 0; i < stockArrayList.size(); i++)
-            sArray[i] = stockArrayList.get(i).getSymbol() + " - " + stockArrayList.get(i).getName();
+        for (int i = 0; i < stockArrayList.size(); i++) {
+            if(stockArrayList.get(i).getSymbol()!=null && stockArrayList.get(i).getName()!=null && stockArrayList.get(i)!=null) {
+                sArray[i] = stockArrayList.get(i).getSymbol() + " - " + stockArrayList.get(i).getName();
+            }
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Make a selection");
@@ -335,7 +361,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(DialogInterface dialog, int which) {
                 Stock temp = stockArrayList.get(which);
                 if (isDuplicate(temp)) {
-                    saveToDB(temp);
+                    if(checkNetwork()) {
+                        saveToDB(temp);
+                    }
+                    else {
+                        errorNetworkDialog();
+                    }
                 }
 //                } else {
 //                    errorDuplicateDialog();
