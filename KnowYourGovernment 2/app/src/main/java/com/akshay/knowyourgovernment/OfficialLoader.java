@@ -30,7 +30,7 @@ import static java.lang.System.out;
 public class OfficialLoader extends AsyncTask<String,Void, ArrayList<Official>> {
 
     private MainActivity mainActivity;
-    private final String API_KEY = "AIzaSyBopVxqCTdPNjrBEkUuB_Aqrs0S1eS0OS0";
+    private final String API_KEY = "";
     private final String URL_FOR_OFFICIAL = "https://www.googleapis.com/civicinfo/v2/representatives?key=";
     private static final String TAG = "OfficialLoader";
 
