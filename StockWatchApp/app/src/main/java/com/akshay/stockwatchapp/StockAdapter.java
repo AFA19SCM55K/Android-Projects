@@ -17,7 +17,7 @@ public class StockAdapter extends RecyclerView.Adapter<MyViewHolder> {
     private ArrayList<Stock> stockArrayList;
     private MainActivity mainActivity;
 
-    public StockAdapter(ArrayList<Stock> stockArrayList, MainActivity mainActivity)
+    private StockAdapter(ArrayList<Stock> stockArrayList, MainActivity mainActivity)
     {
         this.stockArrayList = stockArrayList;
         this.mainActivity = mainActivity;
@@ -29,6 +29,7 @@ public class StockAdapter extends RecyclerView.Adapter<MyViewHolder> {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.stocks_row,parent,false);
         itemView.setOnClickListener(mainActivity);
         itemView.setOnLongClickListener(mainActivity);
+        Log.d(TAG, "onCreateViewHolder: ");
         return new MyViewHolder(itemView);
     }
 
@@ -40,8 +41,6 @@ public class StockAdapter extends RecyclerView.Adapter<MyViewHolder> {
                 setRed(holder, stock);
             } else if (stock.getPriceChange() > 0) {
                 setGreen(holder, stock);
-            } else {
-//
             }
             setStock(holder, stock);
         }catch (Exception e)
