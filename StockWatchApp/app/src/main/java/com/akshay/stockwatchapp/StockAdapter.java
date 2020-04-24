@@ -29,6 +29,7 @@ public class StockAdapter extends RecyclerView.Adapter<MyViewHolder> {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.stocks_row,parent,false);
         itemView.setOnClickListener(mainActivity);
         itemView.setOnLongClickListener(mainActivity);
+        Log.d(TAG, "onCreateViewHolder: ");
         return new MyViewHolder(itemView);
     }
 
