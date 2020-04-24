@@ -14,6 +14,7 @@ import java.util.Locale;
 
 public class StockAdapter extends RecyclerView.Adapter<MyViewHolder> {
     private static final String TAG = "StockAdapter";
+    private static final String GIT_VERSION_CHECK = "hello";
     private ArrayList<Stock> stockArrayList;
     private MainActivity mainActivity;
 
