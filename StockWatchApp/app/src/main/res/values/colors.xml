@@ -3,6 +3,6 @@
     <color name="colorPrimary">#000000</color>
     <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#D81B60</color>
-    <color name="red">#DB4437</color>
-    <color name="green">#0F9D58</color>
+    <color name="googleRED">#DB4437</color>
+    <color name="googleGreen">#0F9D58</color>
 </resources>

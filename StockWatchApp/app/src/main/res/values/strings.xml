@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">StockWatchApp</string>
+    <string name="symbol">symbol</string>
+    <string name="upordownstock">upordownstock</string>
 </resources>

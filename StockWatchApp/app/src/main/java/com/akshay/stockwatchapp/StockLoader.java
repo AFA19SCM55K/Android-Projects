@@ -1,7 +1,9 @@
 package com.akshay.stockwatchapp;
 
+import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,21 +25,19 @@ public class StockLoader extends AsyncTask<String, Void, String> {
 
 
     private static final String TAG = "StockLoader";
-    public String DATA_URL = "https://cloud.iexapis.com/stable/stock/";
-    MainActivity mainActivity;
+    private String DATA_URL = "https://cloud.iexapis.com/stable/stock/";
+    @SuppressLint("StaticFieldLeak")
+    private MainActivity mainActivity;
 
-    public StockLoader(MainActivity mainActivity) {
+    StockLoader(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
     }
 
-    public String public_key = Keys.key;
 
-//    https://cloud.iexapis.com/stable/stock/AAPL/quote?token=sk_d5629178954946179cb62bcf96841b69
 
     @Override
     protected String doInBackground(String... strings) {
-        Log.d(TAG, "doInBackground: bp:"+public_key);
-        String URL_FOR_STOCK = DATA_URL + strings[0] + "/quote?token="+public_key;
+        String URL_FOR_STOCK = DATA_URL + strings[0] + "/quote?token="+ BuildConfig.API_KEY;
         Uri uri = Uri.parse(URL_FOR_STOCK);
         String url_string = uri.toString();
         StringBuilder sb = new StringBuilder();
@@ -51,8 +51,6 @@ public class StockLoader extends AsyncTask<String, Void, String> {
             while((line = bufferedReader.readLine())!=null){
                 sb.append(line).append("\n");
             }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -67,9 +65,6 @@ public class StockLoader extends AsyncTask<String, Void, String> {
         if(stock!=null && stock.getSymbol()!=null && stock.getName()!=null) {
             mainActivity.setStock(stock);
         }
-        else {
-
-        }
         super.onPostExecute(s);
     }
 
@@ -83,6 +78,7 @@ public class StockLoader extends AsyncTask<String, Void, String> {
             double price = jsonObject.getDouble("latestPrice");
             double priceChange = jsonObject.getDouble("change");
             double changePercentage = jsonObject.getDouble("changePercent");
+            Log.d(TAG, "jsonToMap: bp:"+changePercentage+" latetPrice="+price);
             stock.setName(name);
             stock.setSymbol(symbol);
             stock.setPrice(price);

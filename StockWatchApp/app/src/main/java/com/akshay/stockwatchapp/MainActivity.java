@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
 
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int position;
     MainActivity mainActivity;
     ArrayList<Stock> stockArrayList = new ArrayList<>();
-    HashMap<String, String> stockHashMap = new HashMap<String, String>();
+    HashMap<String, String> stockHashMap = new HashMap<>();
     RecyclerView recyclerView;
     StockAdapter stockAdapter;
     SwipeRefreshLayout swipeRefreshLayout;
@@ -150,23 +151,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add_stock:
-                if (checkNetwork()) {
-                    if(stockHashMap.isEmpty()) {
-                        new NameLoader(this).execute();
-                        addStock();
+        if (item.getItemId() == R.id.add_stock) {
+            if (checkNetwork()) {
+                if (stockHashMap.isEmpty()) {
+                    new NameLoader(this).execute();
+                    addStock();
 
-                    }
-                    else {
-                        addStock();
-                    }
                 } else {
-                    errorNetworkDialog();
+                    addStock();
                 }
-                break;
-            default:
-                Toast.makeText(mainActivity, "User is a wizardx", Toast.LENGTH_SHORT).show();
+            } else {
+                errorNetworkDialog();
+            }
+        } else {
+            Toast.makeText(mainActivity, "User is a wizardx", Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -187,6 +185,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+
+//    <!--symbol  name  price  priceChange  percentageChange  status_arrow-->
 
     @Override
     public void onClick(View v) {
@@ -236,12 +236,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             checkNetwork();
             Toast.makeText(this, "No data", Toast.LENGTH_SHORT).show();
         }
-        for (String key : stockHashMap.keySet()) {
-            if (key.startsWith("FB") || stockHashMap.get(key).startsWith("FB")) {
-                //DO SOMETHING HERE
-                //CODE
-            }
-        }
+//        for (String key : stockHashMap.keySet()) {
+//            if (key.startsWith("FB") || stockHashMap.get(key).startsWith("FB")) {
+//                //DO SOMETHING HERE
+//                //CODE
+//            }
+//        }
         stockAdapter.notifyDataSetChanged();
     }
 
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 searchName = et.getText().toString().trim();
-                if (searchName.toString().trim().equals("")) {
+                if (searchName.trim().equals("")) {
                     Toast.makeText(MainActivity.this, "Please Enter Stock Name", Toast.LENGTH_SHORT).show();
                     addStock();
                 } else {
@@ -294,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void searchStock(String searchStock) {
         ArrayList<Stock> stocksTempList = new ArrayList<>();
         for (String key : stockHashMap.keySet()) {
-            if (key.startsWith(searchStock) || stockHashMap.get(key).contains(searchStock)) {
+            if (key.startsWith(searchStock) || Objects.requireNonNull(stockHashMap.get(key)).contains(searchStock)) {
                 Stock temp = new Stock(key, stockHashMap.get(key));
                 Log.d(TAG, "searchStock: temp:" + temp.getSymbol());
                 stocksTempList.add(temp);

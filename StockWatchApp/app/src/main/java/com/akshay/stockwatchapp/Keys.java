@@ -1,5 +1,5 @@
 package com.akshay.stockwatchapp;
 
-public class Keys {
-    public static String key = "";
+class Keys {
+   private static String key = "";
 }
